@@ -1,0 +1,102 @@
+Question 1:
+As a reminder for all of the following questions, you're working as a researcher for your state's department of education, and using their database to create queries. (You may already be familiar with the department_of_education database).
+You'll begin your analysis with the naep table. It's always a good idea to get a better understanding of your data before doing any analysis.
+This allows you to gather key insights before you jump into any complex operations. 
+You'll want to know what columns are reported in your data, what the data types are for each column, and what the first few observations look like.
+Write a query that allows you to inspect the schema of the naep table.
+
+Answer 1:
+select 
+column_name,
+data_type
+from information_schema.columns
+where table_name ='naep';
+
+Question 2:
+Using the style conventions recommended in this course, write a query to select the first fifty records of the naep table. 
+The answer will only be marked correct if you follow the style conventions recommended in this course.Continue to follow these conventions in this exam and beyond.
+
+Answer 2:
+Select * From naep
+limit 50;
+
+Question 3:
+Another good way to understand your data is to calculate various summary statistics.Summary statistics can give you very useful information, 
+such as where your data is centered and how spread out it is. These summary statistics include count, average, min, and max values.
+Write a query that returns summary statistics for avg_math_4_score by state. Make sure to sort the results alphabetically by state name.
+
+Answer 3:
+select state, count(*) ,Avg(avg_math_4_score),min(avg_math_4_score),max(avg_math_4_score)
+from naep 
+group by state
+order by state;
+
+Question 4:
+When a state has a large gap between the max and min values for a score, that's a good indicator that there may be problems with the education system in that state.
+You decide that for avg_math_4_score, a gap of more than 30 between max and min values is probably a bad sign.
+Write a query that alters the previous query so that it returns only the summary statistics for avg_math_4_score by state with differences in max and min values that are greater than 30.
+HINT: You may find it helpful to use aliases as needed, such as MIN(avg_math_4_score) AS minimum, etc.
+
+Answer 4:
+select state, count(*),
+Avg(avg_math_4_score),
+min(avg_math_4_score) as minimum,
+max(avg_math_4_score) as maximum
+from naep 
+group by state
+having max(avg_math_4_score)-min(avg_math_4_score) > 30
+order by state;
+
+Qusetion 5:
+Now that you've gathered key insights about your data, you're ready to do some analysis!
+You want to report the bottom 10 performing states for avg_math_4_score in the year 2000. You also want to report the states that scored below the average avg_math_4_score over all states in the year 2000.
+Write a query that returns a field called bottom_10_states that lists the states in the bottom 10 for avg_math_4_score in the year 2000.
+
+Answer 5:
+Select state as Bottom_10_states
+from naep
+where year='2000'
+group by state
+order by avg(avg_math_4_score)
+limit 10;
+
+Question 6:
+Write a query that calculates the average avg_math_4_score rounded to the nearest 2 decimal places over all states in the year 2000.
+
+Answer 6:
+select round(avg(avg_math_4_score),2)
+from naep
+where year='2000';
+
+Question 7:
+Write a query that returns a field called below_average_states_y2000 that lists all states with an avg_math_4_score less than the average over all states in the year 2000.
+
+Answer 7:
+with avgval as (select avg(avg_math_4_score) as avgScore from naep where year = '2000')
+select naep.state as below_average_states_y2000
+from naep, avgval
+where naep.avg_math_4_score < avgval.avgScore and naep.year = '2000';
+
+Question 8:
+Take a look at the results of your last query. Do your above lists overlap? Should they overlap?
+It's important to remember that if missing values are not handled properly, you may end up with inaccurate calculations and incorrect conclusions.
+In the lists you've created, you would expect some of the states that showed up in the bottom 10 to also show up as scoring below the average over all states.
+Write a query that returns a field called scores_missing_y2000 that lists any states with missing values in the avg_math_4_score column of the naep data table for the year 2000.
+
+Answer 8:
+select state as scores_missing_y2000
+from naep
+where avg_math_4_score is null and year = '2000';
+
+Question 9:
+For this challenge, you're being asked to display the average math score alongside the total expenditure to see if there is any relationship between the two. We are not focusing on doing correlations in this challenge, but rather, this challenge will test your skills with using JOIN.
+To accomplish your task, write a query that returns, for the year 2000, the state,avg_math_4_score, and total_expenditure fields from the naep table left outer joined on the finance table, using id as the key and ordered by total_expenditure, from largest to smallest.
+Be sure to round avg_math_4_score to the nearest 2 decimal places, and then filter out NULL from avg_math_4_scores in order to see the results more clearly.
+
+Answer 9:
+select n.state, round(n.avg_math_4_score,2), f.total_expenditure
+from naep n, finance f
+where n.id = f.id
+and n.year = '2000'
+and n.avg_math_4_score is not null
+order by f.total_expenditure desc;
